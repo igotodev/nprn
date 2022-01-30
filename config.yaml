@@ -1,0 +1,15 @@
+---
+is_debug: true
+listen:
+  type: tcp
+  port: 8081
+  bind_ip: 127.0.0.1
+mongo_db:
+  host: 127.0.0.1
+  port: 27017
+  db_name: user-service
+  user_collection: users
+  sale_collection: sales
+  auth_db:
+  username:
+  password:

@@ -1,0 +1,7 @@
+./idea
+/logs
+Dockerfile
+api-test.http
+gt.http
+nu.http
+main
