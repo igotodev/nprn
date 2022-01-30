@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/julienschmidt/httprouter"
 	"nprn/internal/config"
+	"nprn/internal/entity/sale/salestorage/saledb"
 	"nprn/internal/entity/user/userstorage/userdb"
 	"nprn/internal/handler"
 	"nprn/internal/service"
@@ -29,9 +30,9 @@ func main() {
 	}
 
 	myUsers := userdb.NewCollection(myMongo, cfg.MongoDB.UserCollection, logger)
-	//mySales := salesdb.NewCollection(myMongo, cfg.MongoDB.SaleCollection, logger)
+	mySales := saledb.NewCollection(myMongo, cfg.MongoDB.SaleCollection, logger)
 
-	appService := service.NewService(myUsers, nil, logger)
+	appService := service.NewService(myUsers, mySales, logger)
 
 	handl := handler.NewHandler(appService, logger)
 

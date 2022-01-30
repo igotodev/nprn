@@ -22,13 +22,13 @@ func NewCollection(database *mongo.Database, collection string, logger *logging.
 	}
 }
 
-func (d *UserDB) Create(ctx context.Context, user usermodel.UserInternal) (string, error) {
-	result, err := d.collection.InsertOne(ctx, user)
+func (u *UserDB) Create(ctx context.Context, user usermodel.UserInternal) (string, error) {
+	result, err := u.collection.InsertOne(ctx, user)
 	if err != nil {
 		return "", fmt.Errorf("failed to create user: %v", err)
 	}
 
-	d.logger.Trace(fmt.Sprintf("user <%s> is created", user.Username))
+	u.logger.Trace(fmt.Sprintf("user <%s> is created", user.Username))
 
 	objID, ok := result.InsertedID.(primitive.ObjectID)
 	if ok {
@@ -38,15 +38,15 @@ func (d *UserDB) Create(ctx context.Context, user usermodel.UserInternal) (strin
 	return "", fmt.Errorf("failed to convert objectID[%v] to Hex", objID)
 }
 
-func (d *UserDB) GetOne(ctx context.Context, username string, password string) (usermodel.UserTransfer, error) {
+func (u *UserDB) GetOne(ctx context.Context, username string, password string) (usermodel.UserTransfer, error) {
 	//objID, err := primitive.ObjectIDFromHex(id)
 	//if err != nil {
-	//	return salemodel.UserTransfer{}, fmt.Errorf("failed to convert Hex[%v] to objectID", objID)
+	//	return usermodel.UserTransfer{}, fmt.Errorf("failed to convert Hex[%v] to objectID", objID)
 	//}
 
 	filter := bson.M{"username": username, "password": password}
 
-	result := d.collection.FindOne(ctx, filter)
+	result := u.collection.FindOne(ctx, filter)
 	if result.Err() != nil {
 		return usermodel.UserTransfer{}, fmt.Errorf("failed to find user with username[%s] and/or password[%s]", username, password)
 	}
@@ -61,7 +61,7 @@ func (d *UserDB) GetOne(ctx context.Context, username string, password string) (
 	return user, nil
 }
 
-func (d *UserDB) Update(ctx context.Context, user usermodel.UserInternal) error {
+func (u *UserDB) Update(ctx context.Context, user usermodel.UserInternal) error {
 
 	objID, err := primitive.ObjectIDFromHex(user.ID)
 	if err != nil {
@@ -86,7 +86,7 @@ func (d *UserDB) Update(ctx context.Context, user usermodel.UserInternal) error 
 
 	update := bson.M{"$set": updateUserObj}
 
-	result, err := d.collection.UpdateOne(ctx, filter, update)
+	result, err := u.collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to execute update user: %v", err)
 	}
@@ -95,12 +95,12 @@ func (d *UserDB) Update(ctx context.Context, user usermodel.UserInternal) error 
 		return fmt.Errorf("user is not found: %v", err)
 	}
 
-	d.logger.Tracef("matched %d documents and modified %d documents", result.MatchedCount, result.ModifiedCount)
+	u.logger.Tracef("matched %d documents and modified %d documents", result.MatchedCount, result.ModifiedCount)
 
 	return nil
 }
 
-func (d *UserDB) Delete(ctx context.Context, id string) error {
+func (u *UserDB) Delete(ctx context.Context, id string) error {
 
 	objID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -109,7 +109,7 @@ func (d *UserDB) Delete(ctx context.Context, id string) error {
 
 	filter := bson.M{"_id": objID}
 
-	result, err := d.collection.DeleteOne(ctx, filter)
+	result, err := u.collection.DeleteOne(ctx, filter)
 	if err != nil {
 		return fmt.Errorf("failed to execute delete user: %v", err)
 	}
@@ -118,7 +118,7 @@ func (d *UserDB) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("user is not found")
 	}
 
-	d.logger.Tracef("deleted %d documents", result.DeletedCount)
+	u.logger.Tracef("deleted %d documents", result.DeletedCount)
 
 	return nil
 }
