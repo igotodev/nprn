@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt"
 	"nprn/internal/customerr"
+	"nprn/internal/entity/sale/salemodel"
 	"nprn/internal/entity/sale/salestorage"
 	"nprn/internal/entity/user/usermodel"
 	"nprn/internal/entity/user/userstorage"
@@ -109,10 +110,30 @@ func (s *Service) ParseToken(accessToken string) (string, error) {
 	return claims.UserID, nil
 }
 
-//func (s *Service) Update(ctx context.Context, user usermodel.UserInternal) error {
+//func (s *Service) UpdateUser(ctx context.Context, user usermodel.UserInternal) error {
 //	return s.userstorage.Update(ctx, user)
 //}
 //
-//func (s *Service) Delete(ctx context.Context, id string) error {
+//func (s *Service) DeleteUser(ctx context.Context, id string) error {
 //	return s.userstorage.Delete(ctx, id)
 //}
+
+func (s *Service) CreateSale(ctx context.Context, sale salemodel.Sale) (string, error) {
+	return s.saleStorage.Create(ctx, sale)
+}
+
+func (s *Service) GetSale(ctx context.Context, id string) (salemodel.Sale, error) {
+	return s.saleStorage.GetOne(ctx, id)
+}
+
+func (s *Service) GetAllSales(ctx context.Context) ([]salemodel.Sale, error) {
+	return s.saleStorage.GetAll(ctx)
+}
+
+func (s *Service) UpdateSale(ctx context.Context, sale salemodel.Sale) error {
+	return s.saleStorage.Update(ctx, sale)
+}
+
+func (s *Service) DeleteSale(ctx context.Context, id string) error {
+	return s.saleStorage.Delete(ctx, id)
+}

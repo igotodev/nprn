@@ -79,6 +79,7 @@ func (h *Handler) CheckAuthorizationMiddleware(handlerFunc CustomHandlerFunc) ht
 
 		err = handlerFunc(w, r, params)
 		if err != nil {
+			h.logger.Info(err)
 			checkCustomError(err, w)
 			return
 		}
@@ -113,14 +114,19 @@ func checkCustomError(err error, w http.ResponseWriter) {
 				ce := err.(*customerr.CustomError)
 				w.Write(ce.Marshal())
 
-			}
-			if errors.Is(err, customerr.NotAcceptable) {
+			} else if errors.Is(err, customerr.NotAcceptable) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(406)
 
 				ce := err.(*customerr.CustomError)
 				w.Write(ce.Marshal())
 
+			} else {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(418)
+
+				ce := err.(*customerr.CustomError)
+				w.Write(ce.Marshal())
 			}
 		}
 	}

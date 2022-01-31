@@ -32,7 +32,7 @@ type MongoDB struct {
 var instance *Config
 var once sync.Once
 
-// singleton
+// GetConfig is singleton
 func GetConfig() *Config {
 	once.Do(func() {
 		logger := logging.GetLogger()
