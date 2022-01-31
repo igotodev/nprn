@@ -14,10 +14,6 @@ type authError struct {
 	Message string `json:"message"`
 }
 
-type userAccepted struct {
-	UserID string `json:"user_id"`
-}
-
 type CustomHandlerFunc func(w http.ResponseWriter, r *http.Request, params httprouter.Params) error
 
 func (h *Handler) CheckAuthorizationMiddleware(handlerFunc CustomHandlerFunc) httprouter.Handle {
@@ -30,7 +26,7 @@ func (h *Handler) CheckAuthorizationMiddleware(handlerFunc CustomHandlerFunc) ht
 		if len(header) == 0 {
 
 			authErr := authError{
-				Message: "Unauthorized. Header len is empty",
+				Message: "unauthorized: header is empty",
 			}
 
 			marshal, err := json.Marshal(authErr)
@@ -47,7 +43,7 @@ func (h *Handler) CheckAuthorizationMiddleware(handlerFunc CustomHandlerFunc) ht
 
 		if len(parts) != 2 || parts[0] != "Bearer" || len(parts[1]) == 0 {
 			authErr := authError{
-				Message: "Unauthorized",
+				Message: "unauthorized",
 			}
 
 			marshal, err := json.Marshal(authErr)
@@ -64,7 +60,7 @@ func (h *Handler) CheckAuthorizationMiddleware(handlerFunc CustomHandlerFunc) ht
 
 		if err != nil {
 			authErr := authError{
-				Message: "Unauthorized: not valid token",
+				Message: "unauthorized: not valid token",
 			}
 
 			marshal, err := json.Marshal(authErr)
@@ -84,7 +80,7 @@ func (h *Handler) CheckAuthorizationMiddleware(handlerFunc CustomHandlerFunc) ht
 			return
 		}
 
-		h.logger.Logger.Info(fmt.Sprintf("user with id<%v> is accepted", userID))
+		h.logger.Logger.Info(fmt.Sprintf("user with id=%v is accepted", userID))
 	}
 }
 

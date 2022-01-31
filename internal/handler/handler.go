@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/julienschmidt/httprouter"
-	"io/ioutil"
 	"net/http"
 	"nprn/internal/customerr"
 	"nprn/internal/entity/sale/salemodel"
@@ -37,7 +36,7 @@ func NewHandler(service *service.Service, logger *logging.Logger) *Handler {
 
 func (h *Handler) RegisterRouting(router *httprouter.Router) {
 
-	router.POST("/auth/sign-in", h.CheckErrorMiddleware(h.SignIn))
+	router.GET("/auth/sign-in", h.CheckErrorMiddleware(h.SignIn))
 	router.POST("/auth/sign-up", h.CheckErrorMiddleware(h.SignUp))
 	{
 		//router.PUT("/user/:id", h.CheckAuthorizationMiddleware(h.Update))
@@ -56,20 +55,11 @@ func (h *Handler) RegisterRouting(router *httprouter.Router) {
 }
 
 func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request, _ httprouter.Params) error {
-
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		h.logger.Info(err)
-		return err
-	}
-
-	defer r.Body.Close()
-
 	var signReq signInRequest
 
-	err = json.Unmarshal(body, &signReq)
+	err := json.NewDecoder(r.Body).Decode(&signReq)
 	if err != nil {
-		h.logger.Info(err)
+		return customerr.NewCustomError(err, "error with decode body")
 	}
 
 	token, err := h.service.SignIn(context.Background(), signReq.Username, signReq.Password)
@@ -84,8 +74,7 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 
 	marshal, err := json.Marshal(tr)
 	if err != nil {
-		h.logger.Info(err)
-		return err
+		return customerr.NewCustomError(err, "error with marshal json answer")
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -96,18 +85,11 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 }
 
 func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request, _ httprouter.Params) error {
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		h.logger.Info(err)
-	}
-
-	defer r.Body.Close()
-
 	var usr usermodel.UserInternal
 
-	err = json.Unmarshal(body, &usr)
+	err := json.NewDecoder(r.Body).Decode(&usr)
 	if err != nil {
-		h.logger.Info(err)
+		return customerr.NewCustomError(err, "error with decode body")
 	}
 
 	token, err := h.service.SignUp(context.Background(), usr)
@@ -122,8 +104,7 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 
 	marshal, err := json.Marshal(tr)
 	if err != nil {
-		h.logger.Info(err)
-		return err
+		return customerr.NewCustomError(err, "error with marshal json answer")
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -143,6 +124,7 @@ func (h *Handler) CreateSale(w http.ResponseWriter, r *http.Request, _ httproute
 
 	id, err := h.service.CreateSale(context.Background(), sale)
 	if err != nil {
+		h.logger.Info(err)
 		return err
 	}
 
@@ -156,11 +138,12 @@ func (h *Handler) CreateSale(w http.ResponseWriter, r *http.Request, _ httproute
 	return nil
 }
 
-func (h *Handler) GetSale(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+func (h *Handler) GetSale(w http.ResponseWriter, _ *http.Request, params httprouter.Params) error {
 	idStr := params.ByName("id")
 
 	result, err := h.service.GetSale(context.Background(), idStr)
 	if err != nil {
+		h.logger.Info(err)
 		return err
 	}
 
@@ -175,10 +158,11 @@ func (h *Handler) GetSale(w http.ResponseWriter, r *http.Request, params httprou
 	return nil
 }
 
-func (h *Handler) GetAllSales(w http.ResponseWriter, r *http.Request, _ httprouter.Params) error {
+func (h *Handler) GetAllSales(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) error {
 
 	result, err := h.service.GetAllSales(context.Background())
 	if err != nil {
+		h.logger.Info(err)
 		return err
 	}
 
@@ -207,6 +191,7 @@ func (h *Handler) UpdateSale(w http.ResponseWriter, r *http.Request, params http
 
 	err = h.service.UpdateSale(context.Background(), saleUpdate)
 	if err != nil {
+		h.logger.Info(err)
 		return err
 	}
 
@@ -220,11 +205,12 @@ func (h *Handler) UpdateSale(w http.ResponseWriter, r *http.Request, params http
 	return nil
 }
 
-func (h *Handler) DeleteSale(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+func (h *Handler) DeleteSale(w http.ResponseWriter, _ *http.Request, params httprouter.Params) error {
 	idStr := params.ByName("id")
 
 	err := h.service.DeleteSale(context.Background(), idStr)
 	if err != nil {
+		h.logger.Info(err)
 		return err
 	}
 
