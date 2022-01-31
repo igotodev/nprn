@@ -25,7 +25,7 @@ func NewCollection(database *mongo.Database, collection string, logger *logging.
 func (u *UserDB) Create(ctx context.Context, user usermodel.UserInternal) (string, error) {
 	result, err := u.collection.InsertOne(ctx, user)
 	if err != nil {
-		return "", fmt.Errorf("failed to create user: %v", err)
+		return "", fmt.Errorf("failed to create new user: %v", err)
 	}
 
 	u.logger.Trace(fmt.Sprintf("user <%s> is created", user.Username))
@@ -35,7 +35,7 @@ func (u *UserDB) Create(ctx context.Context, user usermodel.UserInternal) (strin
 		return objID.Hex(), nil
 	}
 
-	return "", fmt.Errorf("failed to convert objectID[%v] to Hex", objID)
+	return "", fmt.Errorf("failed to convert objectID to Hex[%s]", objID.Hex())
 }
 
 func (u *UserDB) GetOne(ctx context.Context, username string, password string) (usermodel.UserTransfer, error) {
