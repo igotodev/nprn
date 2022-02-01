@@ -62,6 +62,8 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return customerr.NewCustomError(err, "error with decode body")
 	}
 
+	defer r.Body.Close()
+
 	token, err := h.service.SignIn(context.Background(), signReq.Username, signReq.Password)
 	if err != nil {
 		h.logger.Info(err)
@@ -92,6 +94,8 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 		return customerr.NewCustomError(err, "error with decode body")
 	}
 
+	defer r.Body.Close()
+
 	token, err := h.service.SignUp(context.Background(), usr)
 	if err != nil {
 		h.logger.Info(err)
@@ -121,6 +125,8 @@ func (h *Handler) CreateSale(w http.ResponseWriter, r *http.Request, _ httproute
 	if err != nil {
 		return customerr.NewCustomError(err, "error with decode body")
 	}
+
+	defer r.Body.Close()
 
 	id, err := h.service.CreateSale(context.Background(), sale)
 	if err != nil {
@@ -187,6 +193,8 @@ func (h *Handler) UpdateSale(w http.ResponseWriter, r *http.Request, params http
 		return customerr.NewCustomError(err, "error with decode body")
 	}
 
+	defer r.Body.Close()
+
 	saleUpdate.ID = idStr
 
 	err = h.service.UpdateSale(context.Background(), saleUpdate)
@@ -225,18 +233,14 @@ func (h *Handler) DeleteSale(w http.ResponseWriter, _ *http.Request, params http
 }
 
 //func (h *Handler) UpdateUser(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
-//
-//	by, err := ioutil.ReadAll(r.Body)
-//	if err != nil {
-//		h.logger.Info(err)
-//	}
-//
 //	var usr usermodel.UserInternal
 //
-//	err = json.Unmarshal(by, &usr)
+//	err := json.NewDecoder(r.Body).Decode(&usr)
 //	if err != nil {
-//		h.logger.Info(err)
+//		return customerr.NewCustomError(err, "error with decode body")
 //	}
+//
+//	defer r.Body.Close()
 //
 //	idStr := params.ByName("id")
 //	usr.ID = idStr
@@ -251,8 +255,9 @@ func (h *Handler) DeleteSale(w http.ResponseWriter, _ *http.Request, params http
 //
 //	return nil
 //}
+
 //
-//func (h *Handler) DeleteUser(w http.ResponseWriter, r *http.Request, params httprouter.Params) error {
+//func (h *Handler) DeleteUser(w http.ResponseWriter, _ *http.Request, params httprouter.Params) error {
 //	idStr := params.ByName("id")
 //
 //	err := h.service.DeleteUser(context.Background(), idStr)
