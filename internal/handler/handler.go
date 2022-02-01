@@ -36,7 +36,7 @@ func NewHandler(service *service.Service, logger *logging.Logger) *Handler {
 
 func (h *Handler) RegisterRouting(router *httprouter.Router) {
 
-	router.GET("/auth/sign-in", h.CheckErrorMiddleware(h.SignIn))
+	router.POST("/auth/sign-in", h.CheckErrorMiddleware(h.SignIn))
 	router.POST("/auth/sign-up", h.CheckErrorMiddleware(h.SignUp))
 	{
 		//router.PUT("/user/:id", h.CheckAuthorizationMiddleware(h.Update))

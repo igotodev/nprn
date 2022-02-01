@@ -8,11 +8,9 @@ We must send `Authorization: Bearer <token>` in Header.
 
 ### POST
 
-To create user and get authorization token we should use this request
+To create user and get authorization token we should use this request:
 
-```
-/auth/sign-up
-```
+`POST /auth/sign-up`
 
 and send username, password and email, like that:
 
@@ -40,13 +38,11 @@ Content-Length: 189
 
 If something went wrong we will get 401 Unauthorized
 
-### GET
 
-To get authorization token we should use this request
+To get authorization token we should use this request:
 
-```
-/auth/sign-in
-```
+
+`POST /auth/sign-in`
 
 and send username and password, like that:
 
@@ -78,7 +74,7 @@ If username or password is not correct we will get 401 Unauthorized
 
 ### GET
 
-`/api/v1/sale/` - get all sales
+`GET /api/v1/sale/` - get all sales
 
 Response:
 
@@ -111,23 +107,7 @@ Content-Length: 347
 ]
 ```
 
-If token is not correct we will get 401 Unauthorized with the error:
-
-```
-{
-  "message": "unauthorized: not valid token"
-}
-```
-
-or
-
-```
-{
-  "message": "unauthorized: header is empty"
-}
-```
-
-`/api/v1/sale/{id}` - get a sale
+`GET /api/v1/sale/{id}` - get a sale
 
 Response:
 
@@ -146,6 +126,22 @@ Content-Length: 174
   "amount": 222.2,
   "date": "01-02-2022",
   "seller_id": "61f3af2865b5b322243a09c7"
+}
+```
+
+If token is not correct we will get 401 Unauthorized with the error:
+
+```
+{
+  "message": "unauthorized: not valid token"
+}
+```
+
+or
+
+```
+{
+  "message": "unauthorized: header is empty"
 }
 ```
 
