@@ -11,6 +11,7 @@ import (
 	"nprn/pkg/client/mongodb"
 	"nprn/pkg/logging"
 	"nprn/pkg/server"
+	"time"
 )
 
 func main() {
@@ -22,7 +23,10 @@ func main() {
 	router := httprouter.New()
 	myServer := server.NewServer()
 
-	myMongo, err := mongodb.NewClient(context.Background(),
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	myMongo, err := mongodb.NewClient(ctx,
 		cfg.MongoDB.Host, cfg.MongoDB.Port, cfg.MongoDB.Username,
 		cfg.MongoDB.Password, cfg.MongoDB.DBName, cfg.MongoDB.AuthDB)
 	if err != nil {

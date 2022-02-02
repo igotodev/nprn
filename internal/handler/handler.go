@@ -10,6 +10,7 @@ import (
 	"nprn/internal/entity/user/usermodel"
 	"nprn/internal/service"
 	"nprn/pkg/logging"
+	"time"
 )
 
 type Handler struct {
@@ -64,7 +65,10 @@ func (h *Handler) SignIn(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 
 	defer r.Body.Close()
 
-	token, err := h.service.SignIn(context.Background(), signReq.Username, signReq.Password)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	token, err := h.service.SignIn(ctx, signReq.Username, signReq.Password)
 	if err != nil {
 		h.logger.Info(err)
 		return err
@@ -96,7 +100,10 @@ func (h *Handler) SignUp(w http.ResponseWriter, r *http.Request, _ httprouter.Pa
 
 	defer r.Body.Close()
 
-	token, err := h.service.SignUp(context.Background(), usr)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	token, err := h.service.SignUp(ctx, usr)
 	if err != nil {
 		h.logger.Info(err)
 		return err
@@ -128,7 +135,10 @@ func (h *Handler) CreateSale(w http.ResponseWriter, r *http.Request, _ httproute
 
 	defer r.Body.Close()
 
-	id, err := h.service.CreateSale(context.Background(), sale)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	id, err := h.service.CreateSale(ctx, sale)
 	if err != nil {
 		h.logger.Info(err)
 		return err
@@ -147,7 +157,10 @@ func (h *Handler) CreateSale(w http.ResponseWriter, r *http.Request, _ httproute
 func (h *Handler) GetSale(w http.ResponseWriter, _ *http.Request, params httprouter.Params) error {
 	idStr := params.ByName("id")
 
-	result, err := h.service.GetSale(context.Background(), idStr)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := h.service.GetSale(ctx, idStr)
 	if err != nil {
 		h.logger.Info(err)
 		return err
@@ -166,7 +179,10 @@ func (h *Handler) GetSale(w http.ResponseWriter, _ *http.Request, params httprou
 
 func (h *Handler) GetAllSales(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) error {
 
-	result, err := h.service.GetAllSales(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	result, err := h.service.GetAllSales(ctx)
 	if err != nil {
 		h.logger.Info(err)
 		return err
@@ -197,7 +213,10 @@ func (h *Handler) UpdateSale(w http.ResponseWriter, r *http.Request, params http
 
 	saleUpdate.ID = idStr
 
-	err = h.service.UpdateSale(context.Background(), saleUpdate)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err = h.service.UpdateSale(ctx, saleUpdate)
 	if err != nil {
 		h.logger.Info(err)
 		return err
@@ -216,7 +235,10 @@ func (h *Handler) UpdateSale(w http.ResponseWriter, r *http.Request, params http
 func (h *Handler) DeleteSale(w http.ResponseWriter, _ *http.Request, params httprouter.Params) error {
 	idStr := params.ByName("id")
 
-	err := h.service.DeleteSale(context.Background(), idStr)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := h.service.DeleteSale(ctx, idStr)
 	if err != nil {
 		h.logger.Info(err)
 		return err
@@ -245,7 +267,10 @@ func (h *Handler) DeleteSale(w http.ResponseWriter, _ *http.Request, params http
 //	idStr := params.ByName("id")
 //	usr.ID = idStr
 //
-//	err = h.service.UpdateUser(context.Background(), usr)
+//	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+//	defer cancel()
+//
+//	err = h.service.UpdateUser(ctx, usr)
 //	if err != nil {
 //		h.logger.Info(err)
 //		return err
@@ -260,7 +285,10 @@ func (h *Handler) DeleteSale(w http.ResponseWriter, _ *http.Request, params http
 //func (h *Handler) DeleteUser(w http.ResponseWriter, _ *http.Request, params httprouter.Params) error {
 //	idStr := params.ByName("id")
 //
-//	err := h.service.DeleteUser(context.Background(), idStr)
+//	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+//	defer cancel()
+//
+//	err := h.service.DeleteUser(ctx, idStr)
 //	if err != nil {
 //		h.logger.Info(err)
 //		return err
