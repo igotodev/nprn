@@ -7,9 +7,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"nprn/internal/customerr"
 	"nprn/internal/entity/sale/salemodel"
-	"nprn/internal/entity/sale/salestorage"
 	"nprn/internal/entity/user/usermodel"
-	"nprn/internal/entity/user/userstorage"
 	"nprn/pkg/logging"
 	"time"
 )
@@ -20,10 +18,27 @@ const (
 	signKey   = "dkr3!#mc349x#s3&74f12d"
 )
 
+//go:generate mockgen -source=service.go -destination=mocks/mock.go
+
+type SaleStorage interface {
+	Create(ctx context.Context, sale salemodel.Sale) (string, error)
+	GetOne(ctx context.Context, id string) (salemodel.Sale, error)
+	GetAll(ctx context.Context) ([]salemodel.Sale, error)
+	Update(ctx context.Context, sale salemodel.Sale) error
+	Delete(ctx context.Context, id string) error
+}
+
+type UserStorage interface {
+	Create(ctx context.Context, user usermodel.UserInternal) (string, error)
+	GetOne(ctx context.Context, username string, password string) (usermodel.UserTransfer, error)
+	//Update(ctx context.Context, user usermodel.UserInternal) error
+	//Delete(ctx context.Context, id string) error
+}
+
 type Service struct {
-	userStorage userstorage.UserStorage
-	saleStorage salestorage.SaleStorage
-	logger      *logging.Logger
+	UserStorage UserStorage
+	SaleStorage SaleStorage
+	Logger      *logging.Logger
 }
 
 type tokenClaims struct {
@@ -31,37 +46,46 @@ type tokenClaims struct {
 	UserID string `json:"user_id"`
 }
 
-func NewService(userStorage userstorage.UserStorage, saleStorage salestorage.SaleStorage, logger *logging.Logger) *Service {
+func NewService(userStorage UserStorage, saleStorage SaleStorage, logger *logging.Logger) *Service {
 	return &Service{
-		userStorage: userStorage,
-		saleStorage: saleStorage,
-		logger:      logger,
+		UserStorage: userStorage,
+		SaleStorage: saleStorage,
+		Logger:      logger,
 	}
 }
 
 func (s *Service) SignUp(ctx context.Context, user usermodel.UserInternal) (string, error) {
-	passwordHash := s.generatePasswordHash(user.PasswordHash)
-	user.PasswordHash = passwordHash
-
-	objID, err := s.userStorage.Create(ctx, user)
+	passHash, err := GeneratePasswordHash(user.PasswordHash)
 	if err != nil {
-		s.logger.Info(err)
+		return "", err
+	}
+
+	user.PasswordHash = passHash
+
+	objID, err := s.UserStorage.Create(ctx, user)
+	if err != nil {
+		s.Logger.Info(err)
 		return "", customerr.NotAcceptable
 	}
 
-	return s.generateToken(objID)
+	return GenerateToken(objID)
 }
 
 func (s *Service) SignIn(ctx context.Context, username string, password string) (string, error) {
-	user, err := s.userStorage.GetOne(ctx, username, s.generatePasswordHash(password))
+	passHash, err := GeneratePasswordHash(password)
+	if err != nil {
+		return "", err
+	}
+
+	user, err := s.UserStorage.GetOne(ctx, username, passHash)
 	if err != nil {
 		return "", customerr.NotFoundErr
 	}
 
-	return s.generateToken(user.ID)
+	return GenerateToken(user.ID)
 }
 
-func (s *Service) generateToken(id string) (string, error) {
+func GenerateToken(id string) (string, error) {
 	tkCl := tokenClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(tokenTime).Unix(),
@@ -75,17 +99,17 @@ func (s *Service) generateToken(id string) (string, error) {
 	return token.SignedString([]byte(signKey))
 }
 
-func (s *Service) generatePasswordHash(password string) string {
+func GeneratePasswordHash(password string) (string, error) {
 	hash := sha256.New()
 
 	_, err := hash.Write([]byte(password))
 	if err != nil {
-		s.logger.Info(err)
+		return "", err
 	}
 
 	result := hash.Sum([]byte(salt))
 
-	return fmt.Sprintf("%x", result)
+	return fmt.Sprintf("%x", result), nil
 }
 
 func (s *Service) ParseToken(accessToken string) (string, error) {
@@ -119,21 +143,21 @@ func (s *Service) ParseToken(accessToken string) (string, error) {
 //}
 
 func (s *Service) CreateSale(ctx context.Context, sale salemodel.Sale) (string, error) {
-	return s.saleStorage.Create(ctx, sale)
+	return s.SaleStorage.Create(ctx, sale)
 }
 
 func (s *Service) GetSale(ctx context.Context, id string) (salemodel.Sale, error) {
-	return s.saleStorage.GetOne(ctx, id)
+	return s.SaleStorage.GetOne(ctx, id)
 }
 
 func (s *Service) GetAllSales(ctx context.Context) ([]salemodel.Sale, error) {
-	return s.saleStorage.GetAll(ctx)
+	return s.SaleStorage.GetAll(ctx)
 }
 
 func (s *Service) UpdateSale(ctx context.Context, sale salemodel.Sale) error {
-	return s.saleStorage.Update(ctx, sale)
+	return s.SaleStorage.Update(ctx, sale)
 }
 
 func (s *Service) DeleteSale(ctx context.Context, id string) error {
-	return s.saleStorage.Delete(ctx, id)
+	return s.SaleStorage.Delete(ctx, id)
 }
